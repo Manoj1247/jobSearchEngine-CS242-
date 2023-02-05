@@ -52,4 +52,4 @@ while True:
         break
 #print(joblist)
 df = pd.DataFrame(joblist)
-df.to_csv('jobs1.csv')
+df.to_csv('linkedinJobs.csv')
