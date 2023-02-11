@@ -1,4 +1,3 @@
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pandas as pd
@@ -7,8 +6,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 def extract(page,job_position):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'}
-    
+    # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'}
+    global joblist
     company_name = []
     job_title = []
     location = []
@@ -16,8 +15,9 @@ def extract(page,job_position):
     postedDate = []
     jobLink=[]
     jobDescription=[]
-    # Initialize the webdriver for Chrome
-    driver = webdriver.Chrome('C://Users//omkar//Downloads//CS242//jobSearchEngine-CS242-//chromedriver')  # Optional argument, if not specified will search path.
+    options = Options()
+    options.headless = True  
+    driver = webdriver.Chrome('C://Users//omkar//Downloads//CS242//jobSearchEngine-CS242-//chromedriver',options=options)  # Optional argument,
 
     # Define the URL to scrape
     url = 'https://www.glassdoor.com/Job/united-states-'+job_position+'-jobs-SRCH_IL.0,13_IN1_KO14,'+str(14+len(job_position)+4)+'_IP'+str(page)+'.htm?'
@@ -36,16 +36,12 @@ def extract(page,job_position):
     
     for job in soup.findAll('a', {'class':'jobLink css-1rd3saf eigr9kq2'}):
         job_title.append(job.span.text.strip())
-        url2='https://www.glassdoor.com/'+job['href']
+        try:
+            url2='https://www.glassdoor.com/'+job['href']
+        except:
+            url2=''
         jobLink.append(url2)
         
-        driver.get(url2)
-        time.sleep(5)
-        html_content = driver.page_source
-        posting_soup = BeautifulSoup(html_content, 'html.parser')
-        description = posting_soup.find('div', {'class':"desc css-58vpdc ecgq1xb5"}).text
-        jobDescription.append(description)
-    
     for loc in soup.findAll('div', {'class': 'd-flex flex-wrap css-11d3uq0 e1rrn5ka2'}):
         location.append(loc.span.text.strip())
     
@@ -66,17 +62,33 @@ def extract(page,job_position):
         postedDate.append(posted_date.strftime("%Y-%m-%d"))
         
     hiringStatus = ['Actively Hiring' for _ in range(len(job_title))]
+    for url2 in jobLink:
+        if len(url2):
+            driver.get(url2)
+            time.sleep(5)
+            html_content = driver.page_source
+            posting_soup = BeautifulSoup(html_content, 'html.parser')
+            try:
+                description = posting_soup.find('div', {'class':"desc css-58vpdc ecgq1xb5"}).text
+            except:
+                description = ''
+                print(url2)
+        else:
+            description=''
+        jobDescription.append(description)
     
-    return list(zip(job_title, company_name, salaryRange, location, hiringStatus, postedDate, jobLink, jobDescription))
+    joblist=list(zip(job_title, company_name, salaryRange, location, hiringStatus, postedDate, jobLink, jobDescription))
+    return joblist
 
 def scrape_data():
     page = 1
+    global result
     result = []
-    # job_positions=['software-developer']
-    job_positions= ['software engineer', 'data scientist', 'machine learning engineer', 'artificial intelligence engineer',
-'big data engineer', 'devops engineer', 'full stack developer', 'front end developer',
-'backend developer', 'mobile developer', 'cybersecurity analyst', 'systems engineer',
-'network engineer', 'database administrator']
+    job_positions=['software-developer']
+#     job_positions= ['software engineer', 'data scientist', 'machine learning engineer', 'artificial intelligence engineer',
+# 'big data engineer', 'devops engineer', 'full stack developer', 'front end developer',
+# 'backend developer', 'mobile developer', 'cybersecurity analyst', 'systems engineer',
+# 'network engineer', 'database administrator']
 # 'product manager', 'program manager',
 # 'project manager', 'ux designer', 'ui designer', 'graphic designer', 'web designer',
 # 'digital marketer', 'content creator', 'technical writer', 'product analyst', 'business analyst',
@@ -93,8 +105,6 @@ def scrape_data():
             #time.sleep(3)
         
     return result
-    
-
 data = scrape_data()
 # data=extract(1,'software-developer')
 df = pd.DataFrame(data, columns=['title', 'company', 'salary', 'location', 'hiringStatus', 'postedDate', 'jobLink', 'jobDescription'])
