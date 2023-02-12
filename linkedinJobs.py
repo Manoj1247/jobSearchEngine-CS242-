@@ -44,12 +44,11 @@ def transform(soup):
           postedDate = ''
         try:
             joblink=item.find('a', class_ = 'base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]')['href']
-            
-            driver.get(joblink)
-            time.sleep(5)
-            html_content = driver.page_source
-            posting_soup = BeautifulSoup(html_content, 'html.parser')
             try:
+                driver.get(joblink)
+                time.sleep(5)
+                html_content = driver.page_source
+                posting_soup = BeautifulSoup(html_content, 'html.parser')
                 jobDescription = posting_soup.find('div', {'class':"description__text description__text--rich"}).text.strip()
             except:
                 jobDescription = ''
@@ -81,6 +80,7 @@ def get_job_postings(positions):
     global joblist
     joblist = []
     for position in positions:
+        print(position)
         page = 0
         while True: 
             c = extract(page,position)
@@ -89,16 +89,16 @@ def get_job_postings(positions):
             if not c.find_all('div', class_ = 'base-card'):
                 break
     df = pd.DataFrame(joblist)
-    df.to_csv('linkedinJobs3.csv')
+    df.to_csv('linkedinJobs4.csv')
     return
 
-# positions = ['software engineer', 'data scientist', 'machine learning engineer', 'artificial intelligence engineer',
-# 'big data engineer', 'devops engineer', 'full stack developer', 'front end developer',
-# 'backend developer', 'mobile developer', 'cybersecurity analyst', 'systems engineer',
-# 'network engineer', 'database administrator', 'product manager', 'program manager',
+# positions = ['software engineer', 'data scientist', 'machine learning engineer', 'artificial intelligence engineer', -p
+# 'big data engineer', 'devops engineer', 'full stack developer', 'front end developer', -a
+# 'backend developer', 'mobile developer', 'cybersecurity analyst', 'systems engineer', -p
+# 'network engineer', 'database administrator', 'product manager', 'program manager', -a
 # 'project manager', 'ux designer', 'ui designer', 'graphic designer', 'web designer',
 # 'digital marketer', 'content creator', 'technical writer', 'product analyst', 'business analyst',
 # 'data analyst', 'information security analyst', 'cloud solutions architect', 'embedded systems engineer',
 # 'electrical engineer', 'mechanical engineer']
-positions=['software engineer', 'data scientist', 'machine learning engineer', 'artificial intelligence engineer']
+positions=['backend developer', 'mobile developer', 'cybersecurity analyst', 'systems engineer']
 get_job_postings(positions)

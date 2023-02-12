@@ -19,17 +19,13 @@ def extract(page,job_position):
     options.headless = True  
     driver = webdriver.Chrome('C://Users//omkar//Downloads//CS242//jobSearchEngine-CS242-//chromedriver',options=options)  # Optional argument,
 
-    # Define the URL to scrape
     url = 'https://www.glassdoor.com/Job/united-states-'+job_position+'-jobs-SRCH_IL.0,13_IN1_KO14,'+str(14+len(job_position)+4)+'_IP'+str(page)+'.htm?'
 
-    # Navigate to the URL
     driver.get(url)
 
-    # Get the HTML content of the page
     html_content = driver.page_source
     soup = BeautifulSoup(html_content, 'html.parser')
-    #if page==29:
-     #   print(soup.prettify())
+    
     for company in soup.findAll('div', {'class':'d-flex justify-content-between align-items-start'}):
         company_name.append(company.a.text.strip())
     
@@ -64,11 +60,11 @@ def extract(page,job_position):
     hiringStatus = ['Actively Hiring' for _ in range(len(job_title))]
     for url2 in jobLink:
         if len(url2):
-            driver.get(url2)
-            time.sleep(5)
-            html_content = driver.page_source
-            posting_soup = BeautifulSoup(html_content, 'html.parser')
             try:
+                driver.get(url2)
+                time.sleep(5)
+                html_content = driver.page_source
+                posting_soup = BeautifulSoup(html_content, 'html.parser')
                 description = posting_soup.find('div', {'class':"desc css-58vpdc ecgq1xb5"}).text
             except:
                 description = ''
@@ -84,28 +80,25 @@ def scrape_data():
     page = 1
     global result
     result = []
-    job_positions=['software-developer']
-#     job_positions= ['software engineer', 'data scientist', 'machine learning engineer', 'artificial intelligence engineer',
-# 'big data engineer', 'devops engineer', 'full stack developer', 'front end developer',
-# 'backend developer', 'mobile developer', 'cybersecurity analyst', 'systems engineer',
-# 'network engineer', 'database administrator']
-# 'product manager', 'program manager',
-# 'project manager', 'ux designer', 'ui designer', 'graphic designer', 'web designer',
-# 'digital marketer', 'content creator', 'technical writer', 'product analyst', 'business analyst',
-# 'data analyst', 'information security analyst', 'cloud solutions architect', 'embedded systems engineer',
-# 'electrical engineer', 'mechanical engineer']
+    # positions = ['software engineer', 'data scientist', 'machine learning engineer', 'artificial intelligence engineer', -p
+    # 'big data engineer', 'devops engineer', 'full stack developer', 'front end developer', -mk
+    # 'backend developer', 'mobile developer', 'cybersecurity analyst', 'systems engineer', -a
+    # 'network engineer', 'database administrator', 'product manager', 'program manager', 2-p 2-m
+    # 'project manager', 'ux designer', 'ui designer', 'graphic designer', 'web designer', -m
+    # 'digital marketer', 'content creator', 'technical writer', 'product analyst', 'business analyst', -m
+    # 'data analyst', 'information security analyst', 'cloud solutions architect', 'embedded systems engineer', -m
+    # 'electrical engineer', 'mechanical engineer'] -m
+    job_positions= ['network engineer', 'database administrator']
     for job_position in job_positions:
-        
+        print(job_position)
         page=1
         page_data = extract(page,job_position)
         while page_data:
             result.extend(page_data)
             page += 1
             page_data = extract(page,job_position)
-            #time.sleep(3)
         
     return result
 data = scrape_data()
-# data=extract(1,'software-developer')
 df = pd.DataFrame(data, columns=['title', 'company', 'salary', 'location', 'hiringStatus', 'postedDate', 'jobLink', 'jobDescription'])
-df.to_csv('glassdoorJobs.csv')
+df.to_csv('glassdoorJobs4.csv')
